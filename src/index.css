@@ -1,0 +1,105 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Nunito:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --primary: #1565C0;
+  --primary-light: #1E88E5;
+  --primary-soft: #E3F2FD;
+  --accent: #42A5F5;
+  --bg: #F0F4F8;
+  --card: #FFFFFF;
+  --text: #1A237E;
+  --text-muted: #546E7A;
+  --border: #BBDEFB;
+  --shadow: 0 4px 24px rgba(21, 101, 192, 0.10);
+  --radius: 18px;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Nunito', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+h1, h2, h3, h4, h5 {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #1565C0, #1E88E5);
+  color: white;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+  box-shadow: 0 4px 14px rgba(21, 101, 192, 0.3);
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(21, 101, 192, 0.4);
+}
+
+.btn-secondary {
+  background: #E3F2FD;
+  color: #1565C0;
+  padding: 0.6rem 1.5rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  transition: all 0.2s;
+  border: 1.5px solid #BBDEFB;
+  cursor: pointer;
+  display: inline-block;
+  text-decoration: none;
+}
+
+.btn-secondary:hover {
+  background: #BBDEFB;
+}
+
+.input {
+  width: 100%;
+  border: 1.5px solid #BBDEFB;
+  border-radius: 12px;
+  padding: 0.65rem 1rem;
+  font-family: 'Nunito', sans-serif;
+  font-size: 0.95rem;
+  background: #FAFCFF;
+  color: #1A237E;
+  transition: border 0.2s, box-shadow 0.2s;
+  outline: none;
+}
+
+.input:focus {
+  border-color: #1E88E5;
+  box-shadow: 0 0 0 3px rgba(66, 165, 245, 0.15);
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #F0F4F8; }
+::-webkit-scrollbar-thumb { background: #BBDEFB; border-radius: 10px; }
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-up { animation: fadeUp 0.4s ease both; }
