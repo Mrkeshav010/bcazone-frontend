@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://bcazone-frontend.vercel.app/</loc></url>
+  <url><loc>https://bcazone-frontend.vercel.app/home</loc></url>
+  <url><loc>https://bcazone-frontend.vercel.app/find-notes</loc></url>
+  <url><loc>https://bcazone-frontend.vercel.app/find-syllabus</loc></url>
+  <url><loc>https://bcazone-frontend.vercel.app/find-qpapers</loc></url>
+  <url><loc>https://bcazone-frontend.vercel.app/find-college</loc></url>
+</urlset>
