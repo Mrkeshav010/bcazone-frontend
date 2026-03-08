@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
+import api from '../utils/api';
 
 const FindCollege = () => {
   const [location, setLocation] = useState('');
@@ -35,45 +36,8 @@ const FindCollege = () => {
     setLoading(true);
     setColleges([]);
     try {
-      const response = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          messages: [{
-            role: 'user',
-            content: `Give me a list of ALL BCA colleges in ${location}, India. 
-For each college provide:
-- College Name
-- Full Address
-- Annual Fees (approximate)
-- Affiliation (university name)
-- Type (Government/Private)
-- Seats available
-- Any notable features
-
-Format as JSON array like this:
-[
-  {
-    "name": "College Name",
-    "address": "Full Address",
-    "fees": "₹XX,XXX per year",
-    "affiliation": "University Name",
-    "type": "Government/Private",
-    "seats": "60",
-    "features": "NAAC accredited, good placement"
-  }
-]
-Return ONLY the JSON array, nothing else.`
-          }]
-        })
-      });
-      const data = await response.json();
-      const text = data.content[0].text;
-      const clean = text.replace(/```json|```/g, '').trim();
-      const parsed = JSON.parse(clean);
-      setColleges(parsed);
+      const { data } = await api.post('/ai/colleges', { location });
+      setColleges(data);
     } catch (err) {
       toast.error('Error fetching colleges');
       console.error(err);
