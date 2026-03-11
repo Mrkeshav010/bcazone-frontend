@@ -1,7 +1,18 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+// Fix leaflet marker icon
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
 
 const FindCollege = () => {
   const [location, setLocation] = useState('');
@@ -11,6 +22,8 @@ const FindCollege = () => {
   const [selectedCollege, setSelectedCollege] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detail, setDetail] = useState('');
+  const [mapCoords, setMapCoords] = useState(null);
+  const [mapLoading, setMapLoading] = useState(false);
 
   const indianStates = [
     'Andhra Pradesh','Arunachal Pradesh','Assam','Bihar','Chhattisgarh',
@@ -34,6 +47,7 @@ const FindCollege = () => {
     setColleges([]);
     setSelectedCollege(null);
     setDetail('');
+    setMapCoords(null);
     try {
       const { data } = await api.post('/ai/colleges', { location });
       setColleges(data);
@@ -44,10 +58,31 @@ const FindCollege = () => {
     }
   };
 
+  const getCoords = async (name, address) => {
+    setMapLoading(true);
+    setMapCoords(null);
+    try {
+      const query = encodeURIComponent(`${name} ${address} India`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`);
+      const data = await res.json();
+      if (data.length > 0) {
+        setMapCoords({ lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) });
+      } else {
+        setMapCoords(null);
+      }
+    } catch {
+      setMapCoords(null);
+    } finally {
+      setMapLoading(false);
+    }
+  };
+
   const showDetail = async (col) => {
     setSelectedCollege(col);
     setDetail('');
     setDetailLoading(true);
+    setMapCoords(null);
+    getCoords(col.name, col.address);
     try {
       const { data } = await api.post('/ai/college-detail', { name: col.name, location });
       setDetail(data.detail);
@@ -98,12 +133,13 @@ const FindCollege = () => {
         {/* College Detail Modal */}
         {selectedCollege && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-y-auto p-6">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-xl font-bold text-blue-700">{selectedCollege.name}</h3>
                 <button onClick={() => setSelectedCollege(null)}
                   className="text-gray-400 hover:text-red-500 text-2xl font-bold">×</button>
               </div>
+
               <div className="flex flex-wrap gap-3 mb-4 text-sm">
                 <span className={`px-3 py-1 rounded-full font-semibold ${selectedCollege.type === 'Government' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
                   {selectedCollege.type}
@@ -111,8 +147,40 @@ const FindCollege = () => {
                 {selectedCollege.fees && <span className="bg-blue-50 text-blue-700 px-3 py-1 rounded-lg">💰 {selectedCollege.fees}</span>}
                 {selectedCollege.seats && <span className="bg-green-50 text-green-700 px-3 py-1 rounded-lg">🪑 {selectedCollege.seats} Seats</span>}
               </div>
-              <p className="text-gray-500 text-sm mb-4">📍 {selectedCollege.address}</p>
+
+              <p className="text-gray-500 text-sm mb-2">📍 {selectedCollege.address}</p>
               {selectedCollege.affiliation && <p className="text-orange-600 text-sm mb-4">🏛 {selectedCollege.affiliation}</p>}
+
+              {/* MAP */}
+              <div className="rounded-xl overflow-hidden mb-4 border border-gray-200" style={{ height: '220px' }}>
+                {mapLoading && (
+                  <div className="flex items-center justify-center h-full bg-gray-50 text-blue-600 text-sm">
+                    <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2" />
+                    Map load ho raha hai...
+                  </div>
+                )}
+                {!mapLoading && mapCoords && (
+                  <MapContainer center={[mapCoords.lat, mapCoords.lon]} zoom={15} style={{ height: '220px', width: '100%' }} scrollWheelZoom={false}>
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={[mapCoords.lat, mapCoords.lon]}>
+                      <Popup>{selectedCollege.name}</Popup>
+                    </Marker>
+                  </MapContainer>
+                )}
+                {!mapLoading && !mapCoords && (
+                  <div className="flex items-center justify-center h-full bg-gray-50 text-gray-400 text-sm">
+                    Map available nahi hai
+                  </div>
+                )}
+              </div>
+
+              {/* Google Maps Button */}
+              <a href={`https://www.google.com/maps/search/${encodeURIComponent(selectedCollege.name + ' ' + selectedCollege.address)}`}
+                target="_blank" rel="noopener noreferrer"
+                className="inline-block mb-4 bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-blue-700">
+                🗺️ Google Maps pe Dekho
+              </a>
+
               <div className="border-t pt-4">
                 <p className="font-semibold text-blue-700 mb-2">📋 Detailed Information</p>
                 {detailLoading ? (
