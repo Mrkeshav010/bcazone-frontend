@@ -50,10 +50,10 @@ const FindNotes = () => {
     }
   };
 
-  const openSlideShare = () => {
-    const q = `BCA ${year ? year + ' year' : ''} ${subject} ${topic} notes`;
-    setIframeUrl(`https://www.slideshare.net/search/slideshow?searchfrom=header&q=${encodeURIComponent(q)}`);
-    setIframeTitle('📄 PDF Notes — SlideShare');
+  const openPdfSearch = () => {
+    const q = `BCA ${year ? year + ' year' : ''} ${subject} ${topic} notes pdf`;
+    setIframeUrl(`https://www.google.com/search?q=${encodeURIComponent(q)}&igu=1`);
+    setIframeTitle('📄 PDF Notes — Google Search');
     setActiveTab('iframe');
   };
 
@@ -106,9 +106,9 @@ const FindNotes = () => {
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'ai' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200'}`}>
               🤖 AI Notes
             </button>
-            <button onClick={openSlideShare}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'iframe' ? 'bg-red-500 text-white' : 'bg-white text-red-500 border border-red-200'}`}>
-              📄 SlideShare Notes
+            <button onClick={openPdfSearch}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'iframe' ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>
+              📄 Find PDF Notes
             </button>
             <button onClick={loadVideos}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'videos' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-300'}`}>
@@ -133,7 +133,7 @@ const FindNotes = () => {
             {!aiLoading && aiNotes && (
               <div className="card">
                 <div className="flex items-center gap-2 mb-4">
-                  <span className="text-2xl"></span>
+                  <span className="text-2xl">🤖</span>
                   <h3 className="text-lg font-bold text-indigo-700">AI Generated Notes</h3>
                 </div>
                 <div className="text-sm text-gray-700 leading-relaxed space-y-3">
@@ -154,13 +154,13 @@ const FindNotes = () => {
           </>
         )}
 
-        {/* SlideShare Iframe Tab */}
+        {/* PDF Search Iframe Tab */}
         {activeTab === 'iframe' && iframeUrl && (
           <div className="card p-0 overflow-hidden">
-            <div className="bg-red-500 text-white px-4 py-3 flex items-center justify-between">
+            <div className="bg-orange-500 text-white px-4 py-3 flex items-center justify-between">
               <span className="font-semibold text-sm">{iframeTitle}</span>
               <button onClick={() => setActiveTab('ai')}
-                className="text-white hover:text-red-200 font-bold text-lg">×</button>
+                className="text-white hover:text-orange-200 font-bold text-lg">×</button>
             </div>
             <iframe
               src={iframeUrl}
@@ -185,8 +185,7 @@ const FindNotes = () => {
             )}
             {!videoLoading && selectedVideo && (
               <div>
-                {/* Main Video Player */}
-                <div className="rounded-xl overflow-hidden mb-4" style={{ height: '400px' }}>
+                <div className="rounded-xl overflow-hidden mb-4">
                   <iframe
                     width="100%"
                     height="400"
@@ -198,12 +197,9 @@ const FindNotes = () => {
                   />
                 </div>
                 <p className="font-semibold text-gray-800 mb-4">{selectedVideo.title}</p>
-
-                {/* Video List */}
                 <div className="grid grid-cols-1 gap-3">
                   {videoIds.map((video, i) => (
-                    <div key={i}
-                      onClick={() => setSelectedVideo(video)}
+                    <div key={i} onClick={() => setSelectedVideo(video)}
                       className={`flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all ${selectedVideo.id === video.id ? 'bg-red-50 border-2 border-red-400' : 'bg-gray-50 hover:bg-red-50 border-2 border-transparent'}`}>
                       <img src={`https://img.youtube.com/vi/${video.id}/mqdefault.jpg`}
                         alt={video.title} className="w-24 h-16 rounded-lg object-cover" />
@@ -239,7 +235,7 @@ const FindNotes = () => {
                 <div key={note._id} className="card flex items-start justify-between gap-4 hover:shadow-lg transition-all">
                   <div>
                     <h3 className="font-bold text-lg text-indigo-700">{note.subject} — {note.year} Year</h3>
-                    {note.topic && <p className="text-sm text-indigo-500 mt-1"> Topic: {note.topic}</p>}
+                    {note.topic && <p className="text-sm text-indigo-500 mt-1">📌 Topic: {note.topic}</p>}
                     {note.description && <p className="text-gray-600 text-sm mt-1">{note.description}</p>}
                     <p className="text-xs text-gray-400 mt-2">Uploaded by: {note.uploadedBy?.fullName} — {note.uploadedBy?.college}</p>
                   </div>
