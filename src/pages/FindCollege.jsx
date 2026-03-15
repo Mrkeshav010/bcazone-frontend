@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import Navbar from '../components/Navbar';
 import toast from 'react-hot-toast';
 import api from '../utils/api';
@@ -6,7 +6,6 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Fix leaflet marker icon
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
@@ -134,12 +133,15 @@ const FindCollege = () => {
         {selectedCollege && (
           <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
+
+              {/* Header */}
               <div className="flex justify-between items-start mb-4">
                 <h3 className="text-xl font-bold text-blue-700">{selectedCollege.name}</h3>
                 <button onClick={() => setSelectedCollege(null)}
                   className="text-gray-400 hover:text-red-500 text-2xl font-bold">×</button>
               </div>
 
+              {/* Badges */}
               <div className="flex flex-wrap gap-3 mb-4 text-sm">
                 <span className={`px-3 py-1 rounded-full font-semibold ${selectedCollege.type === 'Government' ? 'bg-green-100 text-green-700' : 'bg-purple-100 text-purple-700'}`}>
                   {selectedCollege.type}
@@ -160,7 +162,8 @@ const FindCollege = () => {
                   </div>
                 )}
                 {!mapLoading && mapCoords && (
-                  <MapContainer center={[mapCoords.lat, mapCoords.lon]} zoom={15} style={{ height: '220px', width: '100%' }} scrollWheelZoom={false}>
+                  <MapContainer center={[mapCoords.lat, mapCoords.lon]} zoom={15}
+                    style={{ height: '220px', width: '100%' }} scrollWheelZoom={false}>
                     <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
                     <Marker position={[mapCoords.lat, mapCoords.lon]}>
                       <Popup>{selectedCollege.name}</Popup>
@@ -168,9 +171,14 @@ const FindCollege = () => {
                   </MapContainer>
                 )}
                 {!mapLoading && !mapCoords && (
-                  <div className="flex items-center justify-center h-full bg-gray-50 text-gray-400 text-sm">
-                    Map available nahi hai
-                  </div>
+                  <iframe
+                    width="100%"
+                    height="220"
+                    style={{ border: 0 }}
+                    loading="lazy"
+                    allowFullScreen
+                    src={`https://maps.google.com/maps?q=${encodeURIComponent(selectedCollege.name + ' ' + selectedCollege.address + ' India')}&output=embed`}
+                  />
                 )}
               </div>
 
@@ -181,6 +189,7 @@ const FindCollege = () => {
                 🗺️ Google Maps pe Dekho
               </a>
 
+              {/* Detail */}
               <div className="border-t pt-4">
                 <p className="font-semibold text-blue-700 mb-2">📋 Detailed Information</p>
                 {detailLoading ? (
@@ -196,6 +205,7 @@ const FindCollege = () => {
           </div>
         )}
 
+        {/* College List */}
         <div className="space-y-4">
           {colleges.map((col, i) => (
             <div key={i} className="card cursor-pointer hover:shadow-lg hover:border-blue-300 border-2 border-transparent transition-all"
