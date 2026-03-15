@@ -61,13 +61,20 @@ const FindCollege = () => {
     setMapLoading(true);
     setMapCoords(null);
     try {
-      const query = encodeURIComponent(`${name} ${address} India`);
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`);
-      const data = await res.json();
+      // Pehle full name se try karo
+      let query = encodeURIComponent(`${name} ${address} India`);
+      let res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`);
+      let data = await res.json();
+
+      // Nahi mila to sirf city/state se try karo
+      if (data.length === 0) {
+        query = encodeURIComponent(`${address} India`);
+        res = await fetch(`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`);
+        data = await res.json();
+      }
+
       if (data.length > 0) {
         setMapCoords({ lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon) });
-      } else {
-        setMapCoords(null);
       }
     } catch {
       setMapCoords(null);
@@ -201,6 +208,7 @@ const FindCollege = () => {
                   <p className="text-gray-600 text-sm whitespace-pre-line">{detail}</p>
                 )}
               </div>
+
             </div>
           </div>
         )}
