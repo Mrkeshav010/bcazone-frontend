@@ -42,6 +42,16 @@ const FindNotes = () => {
     }
   };
 
+  const openGooglePDF = () => {
+    const query = `BCA ${year ? year + ' year' : ''} ${subject} ${topic} notes filetype:pdf`;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+  };
+
+  const openGoogleNotes = () => {
+    const query = `BCA ${year ? year + ' year' : ''} ${subject} ${topic} notes site:slideshare.net OR site:scribd.com OR site:studocu.com`;
+    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+  };
+
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -79,12 +89,44 @@ const FindNotes = () => {
         {/* AI Notes */}
         {!aiLoading && aiNotes && (
           <div className="card mb-6">
-            <div className="flex items-center gap-2 mb-4">
-              <span className="text-2xl">🤖</span>
-              <h3 className="text-lg font-bold text-indigo-700">AI Generated Notes</h3>
+            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-2xl">🤖</span>
+                <h3 className="text-lg font-bold text-indigo-700">AI Generated Notes</h3>
+              </div>
+              {/* PDF & Notes Buttons */}
+              <div className="flex gap-2 flex-wrap">
+                <button onClick={openGooglePDF}
+                  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+                  📄 Find PDF Notes on Google
+                </button>
+                <button onClick={openGoogleNotes}
+                  className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
+                  📚 Find on Slideshare / Scribd
+                </button>
+              </div>
             </div>
-            <div className="text-sm text-gray-700 whitespace-pre-line leading-relaxed">
-              {aiNotes}
+
+            {/* Formatted Notes */}
+            <div className="text-sm text-gray-700 leading-relaxed space-y-4">
+              {aiNotes.split('\n').map((line, i) => {
+                if (line.startsWith('## ')) return (
+                  <h3 key={i} className="text-lg font-bold text-indigo-700 border-b border-indigo-100 pb-1 mt-4">
+                    {line.replace('## ', '')}
+                  </h3>
+                );
+                if (line.startsWith('**') && line.endsWith('**')) return (
+                  <p key={i} className="font-semibold text-gray-800">{line.replace(/\*\*/g, '')}</p>
+                );
+                if (line.match(/^\d+\./)) return (
+                  <p key={i} className="ml-4 text-gray-700">{line}</p>
+                );
+                if (line.startsWith('- ')) return (
+                  <p key={i} className="ml-4 text-gray-600">• {line.replace('- ', '')}</p>
+                );
+                if (line.trim() === '') return <div key={i} className="h-1" />;
+                return <p key={i} className="text-gray-700">{line}</p>;
+              })}
             </div>
           </div>
         )}
@@ -92,7 +134,7 @@ const FindNotes = () => {
         {/* Uploaded Notes */}
         {searched && (
           <div>
-            <h3 className="text-lg font-bold text-gray-700 mb-3">📁 Uploaded Notes</h3>
+            <h3 className="text-lg font-bold text-gray-700 mb-3">📁 Uploaded Notes by Students</h3>
             <div className="space-y-4">
               {loading && (
                 <div className="text-center py-6">
@@ -100,20 +142,24 @@ const FindNotes = () => {
                 </div>
               )}
               {!loading && uploadedNotes.map(note => (
-                <div key={note._id} className="card flex items-start justify-between gap-4">
+                <div key={note._id} className="card flex items-start justify-between gap-4 hover:shadow-lg transition-all">
                   <div>
-                    <h3 className="font-bold text-lg">{note.subject} — {note.year} Year</h3>
-                    {note.topic && <p className="text-sm text-indigo-500">Topic: {note.topic}</p>}
-                    {note.description && <p className="text-gray-600 text-sm">{note.description}</p>}
-                    <p className="text-xs text-gray-400 mt-1">By: {note.uploadedBy?.fullName} — {note.uploadedBy?.college}</p>
+                    <h3 className="font-bold text-lg text-indigo-700">{note.subject} — {note.year} Year</h3>
+                    {note.topic && <p className="text-sm text-indigo-500 mt-1">📌 Topic: {note.topic}</p>}
+                    {note.description && <p className="text-gray-600 text-sm mt-1">{note.description}</p>}
+                    <p className="text-xs text-gray-400 mt-2">Uploaded by: {note.uploadedBy?.fullName} — {note.uploadedBy?.college}</p>
                   </div>
                   <a href={note.fileUrl} target="_blank" rel="noreferrer"
-                    className="btn-primary text-sm whitespace-nowrap">View / Download</a>
+                    className="btn-primary text-sm whitespace-nowrap flex items-center gap-1">
+                    📥 View / Download
+                  </a>
                 </div>
               ))}
               {!loading && uploadedNotes.length === 0 && (
-                <div className="text-center py-6 text-gray-400">
-                  <p>No uploaded notes found for this subject.</p>
+                <div className="text-center py-8 text-gray-400 bg-white rounded-2xl">
+                  <p className="text-4xl mb-2">📭</p>
+                  <p className="font-medium">No uploaded notes found for this subject.</p>
+                  <p className="text-sm mt-1">Be the first to upload notes!</p>
                 </div>
               )}
             </div>
@@ -124,7 +170,7 @@ const FindNotes = () => {
         {!searched && (
           <div className="text-center py-16 text-gray-400">
             <p className="text-5xl mb-4">📝</p>
-            <p>Enter subject or topic and click Search</p>
+            <p className="font-medium">Enter subject or topic and click Search</p>
             <p className="text-sm mt-1">AI will generate complete notes instantly!</p>
           </div>
         )}
