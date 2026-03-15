@@ -12,6 +12,9 @@ const FindNotes = () => {
   const [aiNotes, setAiNotes] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [activeTab, setActiveTab] = useState('ai');
+  const [iframeUrl, setIframeUrl] = useState('');
+  const [iframeTitle, setIframeTitle] = useState('');
 
   const search = async () => {
     if (!subject.trim() && !topic.trim()) { toast.error('Enter subject or topic!'); return; }
@@ -20,8 +23,9 @@ const FindNotes = () => {
     setUploadedNotes([]);
     setAiNotes('');
     setSearched(true);
+    setIframeUrl('');
+    setActiveTab('ai');
 
-    // DB search
     try {
       const { data } = await api.get(`/notes?year=${year}&subject=${subject}`);
       setUploadedNotes(data);
@@ -31,7 +35,6 @@ const FindNotes = () => {
       setLoading(false);
     }
 
-    // AI search
     try {
       const { data } = await api.post('/ai/notes', { year, subject, topic });
       setAiNotes(data.notes);
@@ -42,25 +45,37 @@ const FindNotes = () => {
     }
   };
 
-  const openGooglePDF = () => {
-    const query = `BCA ${year ? year + ' year' : ''} ${subject} ${topic} notes filetype:pdf`;
-    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
-  };
-
-  const openGoogleNotes = () => {
-    const query = `BCA ${year ? year + ' year' : ''} ${subject} ${topic} notes site:slideshare.net OR site:scribd.com OR site:studocu.com`;
-    window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+  const openResource = (type) => {
+    const q = `BCA ${year ? year + ' year' : ''} ${subject} ${topic}`;
+    let url = '';
+    let title = '';
+    if (type === 'pdf') {
+      url = `https://www.slideshare.net/search/slideshow?searchfrom=header&q=${encodeURIComponent(q + ' notes')}`;
+      title = '📄 PDF Notes — SlideShare';
+    } else if (type === 'scribd') {
+      url = `https://www.scribd.com/search?query=${encodeURIComponent(q + ' notes')}`;
+      title = '📚 Notes — Scribd';
+    } else if (type === 'studocu') {
+      url = `https://www.studocu.com/in/search?query=${encodeURIComponent(q)}`;
+      title = '🎓 Notes — Studocu';
+    } else if (type === 'youtube') {
+      url = `https://www.youtube.com/results?search_query=${encodeURIComponent('BCA ' + q + ' lecture')}`;
+      title = '▶️ Video Lectures — YouTube';
+    }
+    setIframeUrl(url);
+    setIframeTitle(title);
+    setActiveTab('iframe');
   };
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
-      <div className="max-w-4xl mx-auto py-10 px-4">
+      <div className="max-w-5xl mx-auto py-10 px-4">
         <h2 className="text-2xl font-bold text-indigo-700 mb-2">Find Notes</h2>
         <p className="text-gray-500 mb-6">AI-powered — Enter subject or topic, get complete notes instantly</p>
 
         {/* Search Bar */}
-        <div className="flex gap-3 mb-8 flex-wrap">
+        <div className="flex gap-3 mb-6 flex-wrap">
           <select className="input w-auto" value={year} onChange={e => setYear(e.target.value)}>
             <option value="">All Years</option>
             <option value="1st">1st Year</option>
@@ -78,61 +93,91 @@ const FindNotes = () => {
           </button>
         </div>
 
-        {/* AI Notes Loading */}
-        {aiLoading && (
-          <div className="text-center py-10">
-            <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-indigo-600 font-medium">AI is generating notes for you...</p>
-          </div>
-        )}
-
-        {/* AI Notes */}
-        {!aiLoading && aiNotes && (
-          <div className="card mb-6">
-            <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">🤖</span>
-                <h3 className="text-lg font-bold text-indigo-700">AI Generated Notes</h3>
-              </div>
-              {/* PDF & Notes Buttons */}
-              <div className="flex gap-2 flex-wrap">
-                <button onClick={openGooglePDF}
-                  className="flex items-center gap-2 bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
-                  📄 Find PDF Notes on Google
-                </button>
-                <button onClick={openGoogleNotes}
-                  className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-semibold transition-all">
-                  📚 Find on Slideshare / Scribd
-                </button>
-              </div>
-            </div>
-
-            {/* Formatted Notes */}
-            <div className="text-sm text-gray-700 leading-relaxed space-y-4">
-              {aiNotes.split('\n').map((line, i) => {
-                if (line.startsWith('## ')) return (
-                  <h3 key={i} className="text-lg font-bold text-indigo-700 border-b border-indigo-100 pb-1 mt-4">
-                    {line.replace('## ', '')}
-                  </h3>
-                );
-                if (line.startsWith('**') && line.endsWith('**')) return (
-                  <p key={i} className="font-semibold text-gray-800">{line.replace(/\*\*/g, '')}</p>
-                );
-                if (line.match(/^\d+\./)) return (
-                  <p key={i} className="ml-4 text-gray-700">{line}</p>
-                );
-                if (line.startsWith('- ')) return (
-                  <p key={i} className="ml-4 text-gray-600">• {line.replace('- ', '')}</p>
-                );
-                if (line.trim() === '') return <div key={i} className="h-1" />;
-                return <p key={i} className="text-gray-700">{line}</p>;
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Uploaded Notes */}
+        {/* Resource Buttons */}
         {searched && (
+          <div className="flex gap-2 flex-wrap mb-6">
+            <button onClick={() => setActiveTab('ai')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'ai' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200'}`}>
+              🤖 AI Notes
+            </button>
+            <button onClick={() => openResource('pdf')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'iframe' && iframeTitle.includes('SlideShare') ? 'bg-red-500 text-white' : 'bg-white text-red-500 border border-red-200'}`}>
+              📄 SlideShare Notes
+            </button>
+            <button onClick={() => openResource('scribd')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'iframe' && iframeTitle.includes('Scribd') ? 'bg-blue-500 text-white' : 'bg-white text-blue-500 border border-blue-200'}`}>
+              📚 Scribd Notes
+            </button>
+            <button onClick={() => openResource('studocu')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'iframe' && iframeTitle.includes('Studocu') ? 'bg-green-500 text-white' : 'bg-white text-green-500 border border-green-200'}`}>
+              🎓 Studocu Notes
+            </button>
+            <button onClick={() => openResource('youtube')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'iframe' && iframeTitle.includes('YouTube') ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-300'}`}>
+              ▶️ Video Lectures
+            </button>
+            <button onClick={() => setActiveTab('uploaded')}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'uploaded' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200'}`}>
+              📁 Uploaded Notes {uploadedNotes.length > 0 && `(${uploadedNotes.length})`}
+            </button>
+          </div>
+        )}
+
+        {/* AI Notes Tab */}
+        {activeTab === 'ai' && (
+          <>
+            {aiLoading && (
+              <div className="text-center py-10">
+                <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+                <p className="text-indigo-600 font-medium">AI is generating notes for you...</p>
+              </div>
+            )}
+            {!aiLoading && aiNotes && (
+              <div className="card">
+                <div className="flex items-center gap-2 mb-4">
+                  <span className="text-2xl">🤖</span>
+                  <h3 className="text-lg font-bold text-indigo-700">AI Generated Notes</h3>
+                </div>
+                <div className="text-sm text-gray-700 leading-relaxed space-y-3">
+                  {aiNotes.split('\n').map((line, i) => {
+                    if (line.startsWith('## ')) return (
+                      <h3 key={i} className="text-lg font-bold text-indigo-700 border-b border-indigo-100 pb-1 mt-4">
+                        {line.replace('## ', '')}
+                      </h3>
+                    );
+                    if (line.match(/^\d+\./)) return <p key={i} className="ml-4 text-gray-700">{line}</p>;
+                    if (line.startsWith('- ')) return <p key={i} className="ml-4 text-gray-600">• {line.replace('- ', '')}</p>;
+                    if (line.trim() === '') return <div key={i} className="h-1" />;
+                    return <p key={i} className="text-gray-700">{line.replace(/\*\*/g, '')}</p>;
+                  })}
+                </div>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Iframe Tab — SlideShare, Scribd, Studocu, YouTube */}
+        {activeTab === 'iframe' && iframeUrl && (
+          <div className="card p-0 overflow-hidden">
+            <div className="bg-indigo-600 text-white px-4 py-3 flex items-center justify-between">
+              <span className="font-semibold text-sm">{iframeTitle}</span>
+              <button onClick={() => setActiveTab('ai')}
+                className="text-white hover:text-red-300 font-bold text-lg">×</button>
+            </div>
+            <iframe
+              src={iframeUrl}
+              width="100%"
+              height="600px"
+              style={{ border: 0 }}
+              title={iframeTitle}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope"
+              allowFullScreen
+            />
+          </div>
+        )}
+
+        {/* Uploaded Notes Tab */}
+        {activeTab === 'uploaded' && (
           <div>
             <h3 className="text-lg font-bold text-gray-700 mb-3">📁 Uploaded Notes by Students</h3>
             <div className="space-y-4">
