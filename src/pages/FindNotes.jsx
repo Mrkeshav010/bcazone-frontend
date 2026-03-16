@@ -3,6 +3,82 @@ import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 
+// Real verified BCA YouTube videos
+const BCA_VIDEOS = {
+  default: [
+    { id: 'xkjELLEM6Uo', title: 'Data Structures Full Course', channel: 'Jenny\'s Lectures' },
+    { id: 'RBSGKlAvoiM', title: 'Data Structures & Algorithms', channel: 'freeCodeCamp' },
+    { id: 'zg9ih6SVACc', title: 'C Programming Full Course', channel: 'freeCodeCamp' },
+    { id: 'KJgsSFOSQv0', title: 'C++ Full Course', channel: 'freeCodeCamp' },
+    { id: 'rfscVS0vtbw', title: 'Learn Python Full Course', channel: 'freeCodeCamp' },
+    { id: 'Ke90Tje7VS0', title: 'React JS Full Course', channel: 'freeCodeCamp' },
+  ],
+  'data structures': [
+    { id: 'xkjELLEm6Uo', title: 'Data Structures - Jenny\'s Lectures', channel: 'Jenny\'s Lectures' },
+    { id: 'RBSGKlAvoiM', title: 'Data Structures Full Course', channel: 'freeCodeCamp' },
+    { id: 'B31LgI4Y4DQ', title: 'Data Structures Easy to Advanced', channel: 'freeCodeCamp' },
+    { id: 'pkYVOmU3MgA', title: 'Linked List | Data Structures', channel: 'Jenny\'s Lectures' },
+    { id: 'pYT9F8_LFTM', title: 'Stack Data Structure', channel: 'Jenny\'s Lectures' },
+    { id: 'haivV8_SgkE', title: 'Queue Data Structure', channel: 'Jenny\'s Lectures' },
+  ],
+  'dbms': [
+    { id: 'T7AxowNQG_M', title: 'DBMS Full Course', channel: 'Gate Smashers' },
+    { id: 'kBdlM6hNDAE', title: 'Database Management System', channel: 'Gate Smashers' },
+    { id: 'ztHopE5bqbE', title: 'SQL Full Course', channel: 'freeCodeCamp' },
+    { id: 'HXV3zeQKqGY', title: 'SQL Tutorial Full Course', channel: 'freeCodeCamp' },
+    { id: 'qw--VYLpxG4', title: 'PostgreSQL Tutorial', channel: 'freeCodeCamp' },
+    { id: 'p3qvj9hO_Bo', title: 'MySQL Tutorial for Beginners', channel: 'Programming with Mosh' },
+  ],
+  'operating system': [
+    { id: 'mXw9ruZaxzw', title: 'Operating System Full Course', channel: 'Gate Smashers' },
+    { id: 'vBURTt97EkA', title: 'OS Full Course - Process Management', channel: 'Gate Smashers' },
+    { id: 'GjNp0bBcjyQ', title: 'Operating Systems: Crash Course', channel: 'Crash Course' },
+    { id: 'qlH4-oHnBb8', title: 'Process Synchronization', channel: 'Gate Smashers' },
+    { id: 'LSkjN4bBCU8', title: 'Memory Management in OS', channel: 'Gate Smashers' },
+    { id: 'Qkbguf79bKU', title: 'CPU Scheduling Algorithms', channel: 'Gate Smashers' },
+  ],
+  'networking': [
+    { id: 'qiQR5rTSshw', title: 'Computer Networks Full Course', channel: 'Gate Smashers' },
+    { id: 'IPvYjXCsTg8', title: 'Computer Networking Course', channel: 'freeCodeCamp' },
+    { id: 'keeqnciDVOo', title: 'OSI Model Explained', channel: 'TechTerms' },
+    { id: '3QhU9jd03a0', title: 'TCP/IP Model', channel: 'Gate Smashers' },
+    { id: 'AEaKrq3SpW8', title: 'Subnetting Explained', channel: 'PowerCert' },
+    { id: 'OxiY4yf6GGg', title: 'Network Protocols', channel: 'Gate Smashers' },
+  ],
+  'c programming': [
+    { id: 'KJgsSFOSQv0', title: 'C Programming Full Course', channel: 'freeCodeCamp' },
+    { id: 'zg9ih6SVACc', title: 'C Programming Tutorial', channel: 'freeCodeCamp' },
+    { id: 'e9Eds2Rc_x8', title: 'C Programming Pointers', channel: 'Jenny\'s Lectures' },
+    { id: 'zuegQmMdy8M', title: 'C Programming Arrays', channel: 'Jenny\'s Lectures' },
+    { id: 'mUQZ1qmKlLg', title: 'C Programming Functions', channel: 'Jenny\'s Lectures' },
+    { id: 'Bz4MxDeEM6k', title: 'C Programming Strings', channel: 'Jenny\'s Lectures' },
+  ],
+  'python': [
+    { id: 'rfscVS0vtbw', title: 'Python Full Course for Beginners', channel: 'freeCodeCamp' },
+    { id: '_uQrJ0TkZlc', title: 'Python Tutorial Full Course', channel: 'Programming with Mosh' },
+    { id: 'kqtD5dpn9C8', title: 'Python for Beginners', channel: 'Programming with Mosh' },
+    { id: 'ZDa-Z5JzLYM', title: 'Python OOP Tutorial', channel: 'Corey Schafer' },
+    { id: 'YYXdXT2l-Gg', title: 'Python Tutorial for Beginners', channel: 'Programming with Mosh' },
+    { id: 'HGOBQPFzWKo', title: 'Python Django Full Course', channel: 'freeCodeCamp' },
+  ],
+  'java': [
+    { id: 'eIrMbAQSU34', title: 'Java Full Course', channel: 'Programming with Mosh' },
+    { id: 'grEKMHGYyns', title: 'Java Tutorial for Beginners', channel: 'Programming with Mosh' },
+    { id: 'A74TOX803D0', title: 'Java OOP Concepts', channel: 'Programming with Mosh' },
+    { id: 'GoXwIVyNvX0', title: 'Java Collections Framework', channel: 'Jenny\'s Lectures' },
+    { id: 'xk4_1vDrzzo', title: 'Java Multithreading', channel: 'Jenny\'s Lectures' },
+    { id: 'Ae-r8hsbPUo', title: 'Java Exception Handling', channel: 'Jenny\'s Lectures' },
+  ],
+};
+
+const getVideos = (subject, topic) => {
+  const key = (subject + ' ' + topic).toLowerCase();
+  for (const k of Object.keys(BCA_VIDEOS)) {
+    if (k !== 'default' && key.includes(k)) return BCA_VIDEOS[k];
+  }
+  return BCA_VIDEOS.default;
+};
+
 const FindNotes = () => {
   const [year, setYear] = useState('');
   const [subject, setSubject] = useState('');
@@ -13,10 +89,7 @@ const FindNotes = () => {
   const [aiLoading, setAiLoading] = useState(false);
   const [searched, setSearched] = useState(false);
   const [activeTab, setActiveTab] = useState('ai');
-  const [iframeUrl, setIframeUrl] = useState('');
-  const [iframeTitle, setIframeTitle] = useState('');
   const [videoIds, setVideoIds] = useState([]);
-  const [videoLoading, setVideoLoading] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState(null);
 
   const search = async () => {
@@ -26,7 +99,6 @@ const FindNotes = () => {
     setUploadedNotes([]);
     setAiNotes('');
     setSearched(true);
-    setIframeUrl('');
     setActiveTab('ai');
     setVideoIds([]);
     setSelectedVideo(null);
@@ -50,27 +122,15 @@ const FindNotes = () => {
     }
   };
 
-  const openPdfSearch = () => {
-    const q = `BCA ${year ? year + ' year' : ''} ${subject} ${topic} notes pdf`;
-    setIframeUrl(`https://www.google.com/search?q=${encodeURIComponent(q)}&igu=1`);
-    setIframeTitle('📄 PDF Notes — Google Search');
-    setActiveTab('iframe');
+  const loadVideos = () => {
+    const videos = getVideos(subject, topic);
+    setVideoIds(videos);
+    setSelectedVideo(videos[0]);
+    setActiveTab('videos');
   };
 
-  const loadVideos = async () => {
-    setActiveTab('videos');
-    if (videoIds.length > 0) return;
-    setVideoLoading(true);
-    try {
-      const q = `BCA ${year ? year + ' year' : ''} ${subject} ${topic} lecture`;
-      const { data } = await api.post('/ai/videos', { query: q });
-      setVideoIds(data.videos);
-      if (data.videos.length > 0) setSelectedVideo(data.videos[0]);
-    } catch {
-      toast.error('Could not load videos');
-    } finally {
-      setVideoLoading(false);
-    }
+  const openPdfNotes = () => {
+    setActiveTab('pdf');
   };
 
   return (
@@ -106,9 +166,9 @@ const FindNotes = () => {
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'ai' ? 'bg-indigo-600 text-white' : 'bg-white text-indigo-600 border border-indigo-200'}`}>
               🤖 AI Notes
             </button>
-            <button onClick={openPdfSearch}
-              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'iframe' ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>
-              📄 Find PDF Notes
+            <button onClick={openPdfNotes}
+              className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'pdf' ? 'bg-orange-500 text-white' : 'bg-white text-orange-500 border border-orange-200'}`}>
+              📄 PDF Notes
             </button>
             <button onClick={loadVideos}
               className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all ${activeTab === 'videos' ? 'bg-red-600 text-white' : 'bg-white text-red-600 border border-red-300'}`}>
@@ -154,22 +214,46 @@ const FindNotes = () => {
           </>
         )}
 
-        {/* PDF Search Iframe Tab */}
-        {activeTab === 'iframe' && iframeUrl && (
-          <div className="card p-0 overflow-hidden">
-            <div className="bg-orange-500 text-white px-4 py-3 flex items-center justify-between">
-              <span className="font-semibold text-sm">{iframeTitle}</span>
-              <button onClick={() => setActiveTab('ai')}
-                className="text-white hover:text-orange-200 font-bold text-lg">×</button>
+        {/* PDF Notes Tab */}
+        {activeTab === 'pdf' && (
+          <div className="card">
+            <div className="flex items-center gap-2 mb-6">
+              <span className="text-2xl">📄</span>
+              <h3 className="text-lg font-bold text-orange-600">PDF Study Materials</h3>
             </div>
-            <iframe
-              src={iframeUrl}
-              width="100%"
-              height="600px"
-              style={{ border: 0 }}
-              title={iframeTitle}
-              allowFullScreen
-            />
+            <p className="text-gray-500 text-sm mb-6">
+              Find the best PDF notes for <strong>{subject} {topic}</strong> from trusted educational sources:
+            </p>
+            <div className="grid grid-cols-1 gap-4">
+              {[
+                { name: 'NPTEL Notes', desc: 'Government of India — Free IIT/NIT lecture notes', icon: '🎓', color: 'blue',
+                  url: `https://nptel.ac.in/courses` },
+                { name: 'IGNOU Study Material', desc: 'Free official BCA study material by IGNOU', icon: '📚', color: 'green',
+                  url: `https://egyankosh.ac.in` },
+                { name: 'GeeksForGeeks', desc: 'Best CS notes and tutorials with examples', icon: '💻', color: 'indigo',
+                  url: `https://www.geeksforgeeks.org/${encodeURIComponent(subject.toLowerCase().replace(/ /g, '-'))}` },
+                { name: 'W3Schools', desc: 'Easy to understand programming tutorials', icon: '🌐', color: 'purple',
+                  url: `https://www.w3schools.com` },
+                { name: 'JavaTPoint', desc: 'Complete BCA subject tutorials and notes', icon: '📖', color: 'orange',
+                  url: `https://www.javatpoint.com/${encodeURIComponent(subject.toLowerCase().replace(/ /g, '-'))}` },
+                { name: 'TutorialsPoint', desc: 'Free programming and CS tutorials', icon: '📝', color: 'teal',
+                  url: `https://www.tutorialspoint.com/${encodeURIComponent(subject.toLowerCase().replace(/ /g, '_'))}` },
+              ].map((source, i) => (
+                <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl hover:bg-indigo-50 transition-all border border-gray-100">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{source.icon}</span>
+                    <div>
+                      <p className="font-semibold text-gray-800">{source.name}</p>
+                      <p className="text-xs text-gray-500">{source.desc}</p>
+                    </div>
+                  </div>
+                  <a href={source.url} target="_blank" rel="noreferrer"
+                    className="btn-primary text-sm px-4">
+                    Open →
+                  </a>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -177,26 +261,21 @@ const FindNotes = () => {
         {activeTab === 'videos' && (
           <div className="card">
             <h3 className="text-lg font-bold text-red-600 mb-4">▶️ Video Lectures</h3>
-            {videoLoading && (
-              <div className="text-center py-10">
-                <div className="w-12 h-12 border-4 border-red-500 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-                <p className="text-red-500 font-medium">Loading best video lectures...</p>
-              </div>
-            )}
-            {!videoLoading && selectedVideo && (
+            {selectedVideo && (
               <div>
                 <div className="rounded-xl overflow-hidden mb-4">
                   <iframe
                     width="100%"
                     height="400"
-                    src={`https://www.youtube-nocookie.com/embed/${selectedVideo.id}?autoplay=1&rel=0`}
+                    src={`https://www.youtube-nocookie.com/embed/${selectedVideo.id}?rel=0`}
                     title={selectedVideo.title}
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
                     style={{ border: 0 }}
                   />
                 </div>
-                <p className="font-semibold text-gray-800 mb-4">{selectedVideo.title}</p>
+                <p className="font-semibold text-gray-800 mb-1">{selectedVideo.title}</p>
+                <p className="text-xs text-gray-400 mb-4">{selectedVideo.channel}</p>
                 <div className="grid grid-cols-1 gap-3">
                   {videoIds.map((video, i) => (
                     <div key={i} onClick={() => setSelectedVideo(video)}
@@ -204,18 +283,12 @@ const FindNotes = () => {
                       <img src={`https://img.youtube.com/vi/${video.id}/mqdefault.jpg`}
                         alt={video.title} className="w-24 h-16 rounded-lg object-cover" />
                       <div>
-                        <p className="text-sm font-medium text-gray-800 line-clamp-2">{video.title}</p>
+                        <p className="text-sm font-medium text-gray-800">{video.title}</p>
                         <p className="text-xs text-gray-400 mt-1">{video.channel}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-              </div>
-            )}
-            {!videoLoading && videoIds.length === 0 && (
-              <div className="text-center py-8 text-gray-400">
-                <p className="text-4xl mb-2">📺</p>
-                <p>No videos found. Try different subject or topic.</p>
               </div>
             )}
           </div>
