@@ -3,6 +3,8 @@ import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
 
+const CURRENT_YEAR = new Date().getFullYear();
+
 const FindQPapers = () => {
   const [year, setYear] = useState('');
   const [subject, setSubject] = useState('');
@@ -14,8 +16,17 @@ const FindQPapers = () => {
   const [searched, setSearched] = useState(false);
   const [activeTab, setActiveTab] = useState('ai');
 
+  const isValidExamYear = (y) => {
+    const num = parseInt(y);
+    return !isNaN(num) && num >= 2000 && num < CURRENT_YEAR;
+  };
+
   const search = async () => {
     if (!subject.trim()) { toast.error('Enter subject name!'); return; }
+    if (examYear && !isValidExamYear(examYear)) {
+      toast.error(`Exam year must be between 2000 and ${CURRENT_YEAR - 1}!`);
+      return;
+    }
     setLoading(true);
     setAiLoading(true);
     setResults([]);
@@ -23,7 +34,6 @@ const FindQPapers = () => {
     setSearched(true);
     setActiveTab('ai');
 
-    // DB search
     try {
       const { data } = await api.get(`/questionpapers?year=${year}&subject=${subject}&examYear=${examYear}`);
       setResults(data);
@@ -33,12 +43,11 @@ const FindQPapers = () => {
       setLoading(false);
     }
 
-    // AI search
     try {
-      const { data } = await api.post('/ai/qpapers', { year, subject, examYear });
+      const { data } = await api.post('/ai/qpapers', { year, subject, examYear: isValidExamYear(examYear) ? examYear : '' });
       setAiPaper(data.qpaper);
     } catch {
-      setAiPaper('Could not generate question paper.');
+      toast.error('Could not generate question paper. Try again!');
     } finally {
       setAiLoading(false);
     }
@@ -62,8 +71,15 @@ const FindQPapers = () => {
           <input className="input flex-1" placeholder="Subject name... (e.g. Data Structures)"
             value={subject} onChange={e => setSubject(e.target.value)}
             onKeyDown={e => e.key === 'Enter' && search()} />
-          <input className="input w-36" placeholder="Exam Year e.g. 2023"
-            value={examYear} onChange={e => setExamYear(e.target.value)} />
+          <input
+            className="input w-36"
+            placeholder="Exam Year e.g. 2023"
+            value={examYear}
+            maxLength={4}
+            onChange={e => {
+              const val = e.target.value.replace(/\D/g, '');
+              setExamYear(val);
+            }} />
           <button className="btn-primary px-6" onClick={search} disabled={aiLoading || loading}>
             {aiLoading || loading ? 'Searching...' : 'Search'}
           </button>
@@ -105,7 +121,9 @@ const FindQPapers = () => {
                   </div>
                   <h3 className="text-xl font-black">{subject} — Question Paper</h3>
                   <p className="text-sm opacity-90 mt-1">
-                    {year && `BCA ${year} Year`} {examYear && `| Exam Year: ${examYear}`}
+                    Utkal University
+                    {year && ` • BCA ${year} Year`}
+                    {isValidExamYear(examYear) && ` • Exam Year: ${examYear}`}
                   </p>
                   <div className="flex gap-2 mt-3 flex-wrap text-xs">
                     <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">📝 Previous Year Pattern</span>
