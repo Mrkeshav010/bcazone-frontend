@@ -29,9 +29,7 @@ const CourseExam = () => {
   const [score, setScore] = useState(0);
   const courseTitle = COURSE_TITLES[courseId] || courseId;
 
-  useEffect(() => {
-    loadExam();
-  }, []);
+  useEffect(() => { loadExam(); }, []);
 
   const loadExam = async () => {
     setLoading(true);
@@ -46,18 +44,12 @@ const CourseExam = () => {
   };
 
   const submitExam = () => {
-    if (Object.keys(answers).length < questions.length) {
-      toast.error('Please answer all questions!');
-      return;
-    }
+    if (Object.keys(answers).length < questions.length) { toast.error('Please answer all questions!'); return; }
     let correct = 0;
-    questions.forEach((q, i) => {
-      if (answers[i] === q.correct) correct++;
-    });
+    questions.forEach((q, i) => { if (answers[i] === q.correct) correct++; });
     const totalScore = Math.round((correct / questions.length) * 100);
     setScore(totalScore);
     setSubmitted(true);
-    // Save score
     localStorage.setItem(`course_${courseId}_score`, totalScore);
   };
 
@@ -79,28 +71,21 @@ const CourseExam = () => {
       <div className="max-w-2xl mx-auto py-10 px-4">
         <div className={`card text-center ${passed ? 'border-2 border-green-400' : 'border-2 border-red-400'}`}>
           <div className="text-6xl mb-4">{passed ? '🎉' : '😔'}</div>
-          <h2 className="text-2xl font-black mb-2">
-            {passed ? 'Congratulations!' : 'Better Luck Next Time!'}
-          </h2>
-          <div className={`text-5xl font-black mb-4 ${passed ? 'text-green-600' : 'text-red-500'}`}>
-            {score}/100
-          </div>
+          <h2 className="text-2xl font-black mb-2">{passed ? 'Congratulations!' : 'Better Luck Next Time!'}</h2>
+          <div className={`text-5xl font-black mb-4 ${passed ? 'text-green-600' : 'text-red-500'}`}>{score}/100</div>
           <p className="text-gray-500 mb-6">
-            {passed
-              ? `You passed the ${courseTitle} exam! You can now collect your certificate.`
+            {passed ? `You passed the ${courseTitle} exam! You can now collect your certificate.`
               : `You need 65+ marks to pass. You scored ${score}. Please retake the exam.`}
           </p>
           {passed ? (
-            <button
-              onClick={() => navigate(`/courses/${courseId}/certificate`)}
+            <button onClick={() => navigate(`/courses/${courseId}/certificate`)}
               className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 rounded-xl font-bold text-lg transition-all">
-              🏆 Collect Your Certificate
+              Collect Your Certificate
             </button>
           ) : (
-            <button
-              onClick={() => { setSubmitted(false); setAnswers({}); loadExam(); }}
+            <button onClick={() => { setSubmitted(false); setAnswers({}); loadExam(); }}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold transition-all">
-              🔄 Retake Exam
+              Retake Exam
             </button>
           )}
         </div>
@@ -109,17 +94,15 @@ const CourseExam = () => {
   );
 
   const levels = [
-    { label: 'Level 1 — Basic Questions', range: [0, 20], color: 'bg-green-600', desc: '20 Questions • 2 marks each' },
-    { label: 'Level 2 — Intermediate Questions', range: [20, 35], color: 'bg-yellow-500', desc: '15 Questions • 2 marks each' },
-    { label: 'Level 3 — Advanced Questions', range: [35, 50], color: 'bg-red-600', desc: '15 Questions • 2 marks each' },
+    { label: 'Level 1 - Basic Questions', range: [0, 20], color: 'bg-green-600', desc: '20 Questions • 2 marks each' },
+    { label: 'Level 2 - Intermediate Questions', range: [20, 35], color: 'bg-yellow-500', desc: '15 Questions • 2 marks each' },
+    { label: 'Level 3 - Advanced Questions', range: [35, 50], color: 'bg-red-600', desc: '15 Questions • 2 marks each' },
   ];
 
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="max-w-4xl mx-auto py-6 px-4">
-
-        {/* Header */}
         <div style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }} className="rounded-2xl p-6 text-white mb-6">
           <div className="flex items-center gap-3 mb-3">
             <div className="w-8 h-8 bg-white rounded-lg flex items-center justify-center">
@@ -131,12 +114,11 @@ const CourseExam = () => {
           <h2 className="text-2xl font-black">{courseTitle}</h2>
           <p className="text-sm opacity-90 mt-1">50 Questions • 100 Marks • Pass: 65 marks</p>
           <div className="flex gap-2 mt-3 flex-wrap text-xs">
-            <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">✅ Answered: {Object.keys(answers).length}/50</span>
-            <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">⏱️ No Time Limit</span>
+            <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">Answered: {Object.keys(answers).length}/50</span>
+            <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">No Time Limit</span>
           </div>
         </div>
 
-        {/* Questions */}
         {levels.map(level => (
           <div key={level.label} className="mb-8">
             <div className={`${level.color} text-white px-4 py-3 rounded-xl font-bold mb-4`}>
@@ -149,8 +131,7 @@ const CourseExam = () => {
                 return (
                   <div key={globalIdx} className={`bg-white rounded-xl p-5 shadow-sm border-2 transition-all ${answers[globalIdx] !== undefined ? 'border-indigo-200' : 'border-transparent'}`}>
                     <p className="font-semibold text-gray-800 mb-3">
-                      <span className="text-indigo-600 font-black">Q{globalIdx + 1}. </span>
-                      {q.question}
+                      <span className="text-indigo-600 font-black">Q{globalIdx + 1}. </span>{q.question}
                     </p>
                     <div className="grid grid-cols-1 gap-2">
                       {q.options.map((opt, optIdx) => (
@@ -161,8 +142,7 @@ const CourseExam = () => {
                               ? 'bg-indigo-600 text-white border-indigo-600'
                               : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50'
                           }`}>
-                          <span className="font-bold mr-2">{['A', 'B', 'C', 'D'][optIdx]}.</span>
-                          {opt}
+                          <span className="font-bold mr-2">{['A', 'B', 'C', 'D'][optIdx]}.</span>{opt}
                         </button>
                       ))}
                     </div>
@@ -173,14 +153,11 @@ const CourseExam = () => {
           </div>
         ))}
 
-        {/* Submit Button */}
         <div className="text-center pb-10">
-          <p className="text-gray-500 text-sm mb-4">
-            Answered: {Object.keys(answers).length} / {questions.length} questions
-          </p>
+          <p className="text-gray-500 text-sm mb-4">Answered: {Object.keys(answers).length} / {questions.length} questions</p>
           <button onClick={submitExam}
             className="bg-indigo-600 hover:bg-indigo-700 text-white px-12 py-4 rounded-xl font-black text-lg shadow-lg transition-all">
-            Submit Exam 🚀
+            Submit Exam
           </button>
         </div>
       </div>
