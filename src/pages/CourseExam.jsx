@@ -19,12 +19,16 @@ const COURSE_TITLES = {
   'devops': 'DevOps Engineering',
 };
 
+const PASS_MARK = 60;
+
 const CourseExam = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
   const [questions, setQuestions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [answers, setAnswers] = useState({});
+  const [changeCounts, setChangeCounts] = useState({});
+  const [lockedAnswers, setLockedAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [score, setScore] = useState(0);
   const courseTitle = COURSE_TITLES[courseId] || courseId;
@@ -43,8 +47,47 @@ const CourseExam = () => {
     }
   };
 
+  const handleAnswer = (globalIdx, optIdx) => {
+    // If locked — do nothing
+    if (lockedAnswers[globalIdx]) return;
+
+    const currentAnswer = answers[globalIdx];
+    const currentCount = changeCounts[globalIdx] || 0;
+
+    // First time selecting
+    if (currentAnswer === undefined) {
+      setAnswers(prev => ({ ...prev, [globalIdx]: optIdx }));
+      setChangeCounts(prev => ({ ...prev, [globalIdx]: 1 }));
+      return;
+    }
+
+    // Same answer clicked — do nothing
+    if (currentAnswer === optIdx) return;
+
+    // Allow max 2 changes — after 2nd change lock it
+    if (currentCount >= 2) {
+      // Lock the answer
+      setLockedAnswers(prev => ({ ...prev, [globalIdx]: true }));
+      toast.error('Answer locked! Maximum 2 changes allowed.');
+      return;
+    }
+
+    // Change allowed
+    setAnswers(prev => ({ ...prev, [globalIdx]: optIdx }));
+    setChangeCounts(prev => ({ ...prev, [globalIdx]: currentCount + 1 }));
+
+    // If this is 2nd change — lock after selection
+    if (currentCount + 1 >= 2) {
+      setLockedAnswers(prev => ({ ...prev, [globalIdx]: true }));
+      toast('Answer locked after 2 changes!', { icon: '🔒' });
+    }
+  };
+
   const submitExam = () => {
-    if (Object.keys(answers).length < questions.length) { toast.error('Please answer all questions!'); return; }
+    if (Object.keys(answers).length < questions.length) {
+      toast.error('Please answer all questions!');
+      return;
+    }
     let correct = 0;
     questions.forEach((q, i) => { if (answers[i] === q.correct) correct++; });
     const totalScore = Math.round((correct / questions.length) * 100);
@@ -53,7 +96,7 @@ const CourseExam = () => {
     localStorage.setItem(`course_${courseId}_score`, totalScore);
   };
 
-  const passed = score >= 65;
+  const passed = score >= PASS_MARK;
 
   if (loading) return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center">
@@ -74,8 +117,9 @@ const CourseExam = () => {
           <h2 className="text-2xl font-black mb-2">{passed ? 'Congratulations!' : 'Better Luck Next Time!'}</h2>
           <div className={`text-5xl font-black mb-4 ${passed ? 'text-green-600' : 'text-red-500'}`}>{score}/100</div>
           <p className="text-gray-500 mb-6">
-            {passed ? `You passed the ${courseTitle} exam! You can now collect your certificate.`
-              : `You need 65+ marks to pass. You scored ${score}. Please retake the exam.`}
+            {passed
+              ? `You passed the ${courseTitle} exam! You can now collect your certificate.`
+              : `You need ${PASS_MARK}+ marks to pass. You scored ${score}. Please retake the exam.`}
           </p>
           {passed ? (
             <button onClick={() => navigate(`/courses/${courseId}/certificate`)}
@@ -83,7 +127,7 @@ const CourseExam = () => {
               Collect Your Certificate
             </button>
           ) : (
-            <button onClick={() => { setSubmitted(false); setAnswers({}); loadExam(); }}
+            <button onClick={() => { setSubmitted(false); setAnswers({}); setChangeCounts({}); setLockedAnswers({}); loadExam(); }}
               className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl font-bold transition-all">
               Retake Exam
             </button>
@@ -112,10 +156,11 @@ const CourseExam = () => {
             <span className="text-xs bg-white bg-opacity-20 px-2 py-1 rounded-full">Certification Exam</span>
           </div>
           <h2 className="text-2xl font-black">{courseTitle}</h2>
-          <p className="text-sm opacity-90 mt-1">50 Questions • 100 Marks • Pass: 65 marks</p>
+          <p className="text-sm opacity-90 mt-1">50 Questions • 100 Marks • Pass: {PASS_MARK} marks</p>
           <div className="flex gap-2 mt-3 flex-wrap text-xs">
             <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">Answered: {Object.keys(answers).length}/50</span>
             <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">No Time Limit</span>
+            <span className="bg-white bg-opacity-20 px-3 py-1 rounded-full">🔒 Max 2 changes per question</span>
           </div>
         </div>
 
@@ -128,18 +173,40 @@ const CourseExam = () => {
             <div className="space-y-4">
               {questions.slice(level.range[0], level.range[1]).map((q, idx) => {
                 const globalIdx = level.range[0] + idx;
+                const isLocked = lockedAnswers[globalIdx];
+                const changeCount = changeCounts[globalIdx] || 0;
                 return (
-                  <div key={globalIdx} className={`bg-white rounded-xl p-5 shadow-sm border-2 transition-all ${answers[globalIdx] !== undefined ? 'border-indigo-200' : 'border-transparent'}`}>
-                    <p className="font-semibold text-gray-800 mb-3">
-                      <span className="text-indigo-600 font-black">Q{globalIdx + 1}. </span>{q.question}
-                    </p>
+                  <div key={globalIdx} className={`bg-white rounded-xl p-5 shadow-sm border-2 transition-all ${
+                    isLocked ? 'border-red-300 bg-red-50' :
+                    answers[globalIdx] !== undefined ? 'border-indigo-200' : 'border-transparent'
+                  }`}>
+                    <div className="flex items-start justify-between mb-3">
+                      <p className="font-semibold text-gray-800">
+                        <span className="text-indigo-600 font-black">Q{globalIdx + 1}. </span>{q.question}
+                      </p>
+                      {isLocked && (
+                        <span className="ml-2 flex-shrink-0 text-xs bg-red-100 text-red-600 px-2 py-1 rounded-full font-semibold">
+                          🔒 Locked
+                        </span>
+                      )}
+                      {!isLocked && changeCount > 0 && (
+                        <span className="ml-2 flex-shrink-0 text-xs bg-yellow-100 text-yellow-600 px-2 py-1 rounded-full font-semibold">
+                          {2 - changeCount} change{2 - changeCount !== 1 ? 's' : ''} left
+                        </span>
+                      )}
+                    </div>
                     <div className="grid grid-cols-1 gap-2">
                       {q.options.map((opt, optIdx) => (
                         <button key={optIdx}
-                          onClick={() => setAnswers(prev => ({ ...prev, [globalIdx]: optIdx }))}
+                          onClick={() => handleAnswer(globalIdx, optIdx)}
+                          disabled={isLocked}
                           className={`text-left p-3 rounded-xl border-2 text-sm transition-all ${
-                            answers[globalIdx] === optIdx
+                            isLocked && answers[globalIdx] === optIdx
+                              ? 'bg-red-500 text-white border-red-500'
+                              : answers[globalIdx] === optIdx
                               ? 'bg-indigo-600 text-white border-indigo-600'
+                              : isLocked
+                              ? 'bg-gray-100 text-gray-400 border-gray-200 cursor-not-allowed'
                               : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-indigo-300 hover:bg-indigo-50'
                           }`}>
                           <span className="font-bold mr-2">{['A', 'B', 'C', 'D'][optIdx]}.</span>{opt}

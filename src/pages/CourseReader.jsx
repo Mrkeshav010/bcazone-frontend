@@ -19,6 +19,21 @@ const COURSE_TITLES = {
   'devops': 'DevOps Engineering',
 };
 
+const COURSE_PAGES = {
+  'python': 80,
+  'java': 85,
+  'c-programming': 70,
+  'cpp': 75,
+  'web-development': 110,
+  'data-structures': 90,
+  'data-science': 95,
+  'dsa': 85,
+  'cybersecurity': 80,
+  'android': 85,
+  'cloud': 75,
+  'devops': 75,
+};
+
 const CourseReader = () => {
   const { courseId } = useParams();
   const navigate = useNavigate();
@@ -30,7 +45,7 @@ const CourseReader = () => {
     return saved ? JSON.parse(saved) : [];
   });
 
-  const TOTAL_PAGES = 60;
+  const TOTAL_PAGES = COURSE_PAGES[courseId] || 80;
   const courseTitle = COURSE_TITLES[courseId] || courseId;
   const progress = Math.round((completedPages.length / TOTAL_PAGES) * 100);
 
@@ -64,7 +79,6 @@ const CourseReader = () => {
     <div className="min-h-screen bg-gray-100">
       <Navbar />
       <div className="max-w-4xl mx-auto py-6 px-4">
-
         <div className="bg-white rounded-2xl shadow p-4 mb-6">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div>
