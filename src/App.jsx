@@ -17,6 +17,10 @@ import Upload from './pages/Upload';
 import Profile from './pages/Profile';
 import Messages from './pages/Messages';
 import AdminDashboard from './pages/AdminDashboard';
+import Courses from './pages/Courses';
+import CourseReader from './pages/CourseReader';
+import CourseExam from './pages/CourseExam';
+import CourseCertificate from './pages/CourseCertificate';
 
 function App() {
   return (
@@ -46,6 +50,10 @@ function App() {
           <Route path="/profile/:id" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           <Route path="/admin" element={<ProtectedRoute adminOnly={true}><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/courses" element={<ProtectedRoute><Courses /></ProtectedRoute>} />
+          <Route path="/courses/:courseId" element={<ProtectedRoute><CourseReader /></ProtectedRoute>} />
+          <Route path="/courses/:courseId/exam" element={<ProtectedRoute><CourseExam /></ProtectedRoute>} />
+          <Route path="/courses/:courseId/certificate" element={<ProtectedRoute><CourseCertificate /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </BrowserRouter>

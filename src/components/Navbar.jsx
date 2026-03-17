@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useState, useRef, useEffect } from 'react';
-import { FaGraduationCap, FaEnvelope, FaUpload, FaSignOutAlt, FaSearch, FaHome, FaBars, FaTimes } from 'react-icons/fa';
+import { FaGraduationCap, FaEnvelope, FaUpload, FaSignOutAlt, FaSearch, FaHome, FaBars, FaTimes, FaBook } from 'react-icons/fa';
 import api from '../utils/api';
 
 const Navbar = () => {
@@ -65,6 +65,10 @@ const Navbar = () => {
           <div className="hidden md:flex items-center gap-2">
             <Link to="/home" className="p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition" title="Home">
               <FaHome size={18} />
+            </Link>
+            <Link to="/courses" className="flex items-center gap-1 px-3 py-2 rounded-xl hover:bg-indigo-50 text-indigo-600 transition font-semibold text-sm" title="Courses">
+              <FaBook size={16} />
+              <span className="hidden lg:block">Courses</span>
             </Link>
             <Link to="/messages" className="p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition" title="Messages">
               <FaEnvelope size={18} />
@@ -149,6 +153,7 @@ const Navbar = () => {
         <div className="absolute top-full left-0 right-0 bg-white border-b border-blue-100 shadow-lg md:hidden p-4 space-y-2 z-50">
           {[
             { to: '/home', icon: <FaHome />, label: 'Home' },
+            { to: '/courses', icon: <FaBook />, label: 'Courses' },
             { to: '/messages', icon: <FaEnvelope />, label: 'Messages' },
             { to: '/upload', icon: <FaUpload />, label: 'Upload' },
             { to: `/profile/${user._id}`, icon: null, label: 'My Profile' },
