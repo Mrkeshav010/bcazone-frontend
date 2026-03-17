@@ -1,14 +1,14 @@
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { useAuth } from '../context/AuthContext';
-import { FaUniversity, FaBook, FaStickyNote, FaFileAlt, FaSearch } from 'react-icons/fa';
+import { FaUniversity, FaBook, FaStickyNote, FaFileAlt, FaGraduationCap } from 'react-icons/fa';
 
 const features = [
   { icon: <FaUniversity size={32} />, title: 'Find College', desc: 'BCA colleges near your location', to: '/find-college', color: 'bg-blue-500' },
   { icon: <FaBook size={32} />, title: 'Find Syllabus', desc: 'College-wise BCA syllabus', to: '/find-syllabus', color: 'bg-purple-500' },
   { icon: <FaStickyNote size={32} />, title: 'Find Notes', desc: 'Year & subject wise notes', to: '/find-notes', color: 'bg-green-500' },
   { icon: <FaFileAlt size={32} />, title: 'Previous Papers', desc: 'Year & subject wise Q-Papers', to: '/find-qpapers', color: 'bg-red-500' },
-  { icon: <FaSearch size={32} />, title: 'Find by Topic', desc: 'Search notes by topic name', to: '/find-notes?mode=topic', color: 'bg-yellow-500' },
+  { icon: <FaGraduationCap size={32} />, title: 'Courses with Certificate', desc: 'Learn & get certified — Python, Java, Web Dev and more', to: '/courses', color: 'bg-indigo-500' },
 ];
 
 const Home = () => {
