@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FaLinkedin, FaGithub, FaEnvelope, FaBan, FaEdit } from 'react-icons/fa';
+import { FaLinkedin, FaGithub, FaEnvelope, FaEdit } from 'react-icons/fa';
 
 const Profile = () => {
   const { id } = useParams();
@@ -48,15 +48,8 @@ const Profile = () => {
     try {
       await api.post(`/messages/request/${id}`);
       setReqStatus('pending');
-      toast.success('Message request sent!');
+      toast.success('Connection request sent!');
     } catch { toast.error('Error sending request'); }
-  };
-
-  const blockUser = async () => {
-    try {
-      await api.post(`/users/block/${id}`);
-      toast.success('User blocked');
-    } catch { toast.error('Error'); }
   };
 
   if (!profile) return (
@@ -96,22 +89,16 @@ const Profile = () => {
                     <FaEdit size={14} /> Edit Profile
                   </button>
                 ) : (
-                  <>
-                    {reqStatus === 'pending' ? (
-                      <span className="text-sm text-yellow-600 bg-yellow-50 px-4 py-2 rounded-xl font-semibold">
-                        Request Sent ⏳
-                      </span>
-                    ) : (
-                      <button onClick={sendRequest}
-                        className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition">
-                        <FaEnvelope size={14} /> Connect
-                      </button>
-                    )}
-                    <button onClick={blockUser}
-                      className="flex items-center gap-2 px-4 py-2 bg-gray-100 text-gray-600 rounded-xl text-sm font-semibold hover:bg-red-50 hover:text-red-500 transition">
-                      <FaBan size={14} /> Block
+                  reqStatus === 'pending' ? (
+                    <span className="text-sm text-yellow-600 bg-yellow-50 px-4 py-2 rounded-xl font-semibold">
+                      Request Sent ⏳
+                    </span>
+                  ) : (
+                    <button onClick={sendRequest}
+                      className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-xl text-sm font-semibold hover:bg-indigo-700 transition">
+                      <FaEnvelope size={14} /> Connect
                     </button>
-                  </>
+                  )
                 )}
               </div>
             </div>
@@ -128,7 +115,6 @@ const Profile = () => {
                 {profile.college} {profile.year && `• ${profile.year} Year`}
               </p>
               {profile.bio && <p className="text-gray-600 mt-2 text-sm">{profile.bio}</p>}
-
               <div className="flex gap-4 mt-2 flex-wrap text-sm text-gray-500">
                 {profile.city && <span>📍 {profile.city}{profile.state && `, ${profile.state}`}</span>}
                 {profile.education && <span>🎓 {profile.education}</span>}
