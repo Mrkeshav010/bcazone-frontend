@@ -9,14 +9,15 @@ const Navbar = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const searchRef = useRef(null);
+  const mobileSearchRef = useRef(null);
 
   const handleLogout = () => { logout(); navigate('/'); };
 
-  const handleSearch = async (e) => {
-    const val = e.target.value;
+  const handleSearch = async (val) => {
     setQuery(val);
     if (val.trim().length < 2) { setResults([]); return; }
     try {
@@ -26,8 +27,12 @@ const Navbar = () => {
   };
 
   const handleUserClick = (userId) => {
-    setSearchOpen(false); setQuery(''); setResults([]);
-    navigate(`/messages?user=${userId}`);
+    setSearchOpen(false);
+    setMobileSearchOpen(false);
+    setMenuOpen(false);
+    setQuery('');
+    setResults([]);
+    navigate(`/profile/${userId}`);
   };
 
   useEffect(() => {
@@ -35,10 +40,36 @@ const Navbar = () => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setSearchOpen(false); setQuery(''); setResults([]);
       }
+      if (mobileSearchRef.current && !mobileSearchRef.current.contains(e.target)) {
+        setMobileSearchOpen(false); setQuery(''); setResults([]);
+      }
     };
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  const SearchResults = () => (
+    <>
+      {results.length > 0 && (
+        <div className="mt-2 space-y-1 max-h-60 overflow-y-auto">
+          {results.map(u => (
+            <div key={u._id} onClick={() => handleUserClick(u._id)}
+              className="flex items-center gap-3 p-2 rounded-xl hover:bg-blue-50 cursor-pointer transition">
+              <img src={u.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'U')}&background=1565C0&color=fff`}
+                alt={u.fullName} className="w-9 h-9 rounded-full object-cover border-2 border-blue-200" />
+              <div>
+                <p className="text-sm font-semibold text-blue-800">{u.fullName}</p>
+                <p className="text-xs text-gray-400">{u.college || 'BCA Student'}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      {query.length >= 2 && results.length === 0 && (
+        <p className="text-xs text-gray-400 mt-2 text-center">No users found</p>
+      )}
+    </>
+  );
 
   return (
     <nav className="bg-white border-b border-blue-100 px-6 py-3 flex items-center justify-between shadow-sm sticky top-0 z-50">
@@ -54,6 +85,7 @@ const Navbar = () => {
 
       {user && (
         <>
+          {/* Desktop */}
           <div className="hidden md:flex items-center gap-2">
             <Link to="/home" className="p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition" title="Home">
               <FaHome size={18} />
@@ -64,6 +96,8 @@ const Navbar = () => {
             <Link to="/upload" className="p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition" title="Upload">
               <FaUpload size={18} />
             </Link>
+
+            {/* Desktop Search */}
             <div className="relative" ref={searchRef}>
               <button onClick={() => setSearchOpen(!searchOpen)}
                 className="p-2 rounded-xl hover:bg-blue-50 text-blue-600 transition" title="Search Users">
@@ -72,29 +106,13 @@ const Navbar = () => {
               {searchOpen && (
                 <div className="absolute right-0 top-10 w-72 bg-white border border-blue-100 rounded-2xl shadow-xl z-50 p-3">
                   <input autoFocus type="text" placeholder="Search users by name..."
-                    value={query} onChange={handleSearch}
+                    value={query} onChange={e => handleSearch(e.target.value)}
                     className="w-full border border-blue-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500" />
-                  {results.length > 0 && (
-                    <div className="mt-2 space-y-1 max-h-60 overflow-y-auto">
-                      {results.map(u => (
-                        <div key={u._id} onClick={() => handleUserClick(u._id)}
-                          className="flex items-center gap-3 p-2 rounded-xl hover:bg-blue-50 cursor-pointer transition">
-                          <img src={u.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.fullName || 'U')}&background=1565C0&color=fff`}
-                            alt={u.fullName} className="w-9 h-9 rounded-full object-cover border-2 border-blue-200" />
-                          <div>
-                            <p className="text-sm font-semibold text-blue-800">{u.fullName}</p>
-                            <p className="text-xs text-gray-400">{u.college || 'BCA Student'}</p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  {query.length >= 2 && results.length === 0 && (
-                    <p className="text-xs text-gray-400 mt-2 text-center">No users found</p>
-                  )}
+                  <SearchResults />
                 </div>
               )}
             </div>
+
             {user.isAdmin && (
               <Link to="/admin" className="p-2 rounded-xl hover:bg-yellow-50 text-yellow-600 transition text-xs font-bold">Admin</Link>
             )}
@@ -108,12 +126,32 @@ const Navbar = () => {
               <FaSignOutAlt size={17} />
             </button>
           </div>
-          <button className="md:hidden p-2 rounded-xl hover:bg-blue-50 text-blue-600" onClick={() => setMenuOpen(!menuOpen)}>
-            {menuOpen ? <FaTimes /> : <FaBars />}
-          </button>
+
+          {/* Mobile — Search + Menu buttons */}
+          <div className="md:hidden flex items-center gap-2">
+            <button onClick={() => { setMobileSearchOpen(!mobileSearchOpen); setMenuOpen(false); }}
+              className="p-2 rounded-xl hover:bg-blue-50 text-blue-600">
+              <FaSearch size={17} />
+            </button>
+            <button className="p-2 rounded-xl hover:bg-blue-50 text-blue-600"
+              onClick={() => { setMenuOpen(!menuOpen); setMobileSearchOpen(false); }}>
+              {menuOpen ? <FaTimes /> : <FaBars />}
+            </button>
+          </div>
         </>
       )}
 
+      {/* Mobile Search Bar */}
+      {mobileSearchOpen && user && (
+        <div className="absolute top-full left-0 right-0 bg-white border-b border-blue-100 shadow-lg md:hidden p-4 z-50" ref={mobileSearchRef}>
+          <input autoFocus type="text" placeholder="Search users by name..."
+            value={query} onChange={e => handleSearch(e.target.value)}
+            className="w-full border border-blue-200 rounded-xl px-3 py-2 text-sm outline-none focus:border-blue-500" />
+          <SearchResults />
+        </div>
+      )}
+
+      {/* Mobile Menu */}
       {menuOpen && user && (
         <div className="absolute top-full left-0 right-0 bg-white border-b border-blue-100 shadow-lg md:hidden p-4 space-y-2 z-50">
           {[
