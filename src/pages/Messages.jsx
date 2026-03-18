@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { useLocation } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
@@ -9,6 +10,7 @@ const SOCKET_URL = import.meta.env.VITE_API_URL || 'https://bcazone-backend.onre
 
 const Messages = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const [inbox, setInbox] = useState([]);
   const [requests, setRequests] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -22,23 +24,53 @@ const Messages = () => {
   const bottomRef = useRef(null);
   const typingTimeout = useRef(null);
   const holdTimeout = useRef(null);
+  const selectedUserRef = useRef(null);
+
+  // Keep ref in sync with state
+  useEffect(() => {
+    selectedUserRef.current = selectedUser;
+  }, [selectedUser]);
 
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, { query: { userId: user._id } });
+
     socketRef.current.on('receiveMessage', (msg) => {
       setMessages(prev => [...prev, msg]);
     });
+
     socketRef.current.on('typing', ({ from }) => {
-      if (selectedUser && from === selectedUser._id) {
+      if (selectedUserRef.current && from === selectedUserRef.current._id) {
         setIsTyping(true);
         clearTimeout(typingTimeout.current);
         typingTimeout.current = setTimeout(() => setIsTyping(false), 2000);
       }
     });
-    return () => socketRef.current.disconnect();
-  }, [user, selectedUser]);
 
-  useEffect(() => { fetchInbox(); }, []);
+    // Real-time delete
+    socketRef.current.on('messageDeleted', ({ msgId }) => {
+      setMessages(prev => prev.filter(m => m._id !== msgId));
+    });
+
+    return () => socketRef.current.disconnect();
+  }, [user]);
+
+  useEffect(() => {
+    fetchInbox();
+  }, []);
+
+  // Restore selected user from URL param
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const userId = params.get('user');
+    if (userId && inbox.length > 0) {
+      const item = inbox.find(i => i.sender._id === userId || i.receiver._id === userId);
+      if (item) {
+        const other = item.sender._id === user._id ? item.receiver : item.sender;
+        setSelectedUser(other);
+        setShowChat(true);
+      }
+    }
+  }, [inbox, location.search]);
 
   const fetchInbox = async () => {
     try {
@@ -89,19 +121,28 @@ const Messages = () => {
     } catch { toast.error('Error updating request'); }
   };
 
-  const selectUser = (other) => { setSelectedUser(other); setShowChat(true); setSelectedMsg(null); };
+  const selectUser = (other) => {
+    setSelectedUser(other);
+    setShowChat(true);
+    setSelectedMsg(null);
+  };
 
   const deleteMessage = async (msgId, idx) => {
     try {
       await api.delete(`/messages/message/${msgId}`);
-      setMessages(prev => prev.filter((_, i) => i !== idx));
+      // Emit to other user via socket
+      socketRef.current.emit('deleteMessage', {
+        to: selectedUser._id,
+        msgId
+      });
+      setMessages(prev => prev.filter(m => m._id !== msgId));
       setSelectedMsg(null);
       toast.success('Message deleted');
     } catch { toast.error('Could not delete message'); }
   };
 
   const handleMsgHoldStart = (m, i, isMe) => {
-    if (!isMe) return;
+    if (!isMe || !m._id) return;
     holdTimeout.current = setTimeout(() => {
       setSelectedMsg({ id: m._id, idx: i });
     }, 600);
@@ -121,7 +162,7 @@ const Messages = () => {
           onClick={() => setSelectedMsg(null)}>
           <div className="bg-white rounded-2xl shadow-xl p-5 w-72" onClick={e => e.stopPropagation()}>
             <p className="font-bold text-gray-800 mb-2 text-center">Delete Message?</p>
-            <p className="text-sm text-gray-500 text-center mb-4">This message will be deleted permanently.</p>
+            <p className="text-sm text-gray-500 text-center mb-4">This message will be permanently deleted.</p>
             <div className="flex gap-3">
               <button onClick={() => setSelectedMsg(null)}
                 className="flex-1 py-2 bg-gray-100 rounded-xl text-sm font-semibold text-gray-600 hover:bg-gray-200 transition">
@@ -239,9 +280,9 @@ const Messages = () => {
                 )}
                 {messages.map((m, i) => {
                   const isMe = m.sender === user._id || m.sender?._id === user._id;
-                  const isSelected = selectedMsg?.idx === i;
+                  const isSelected = selectedMsg?.id === m._id;
                   return (
-                    <div key={i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
+                    <div key={m._id || i} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
                       <div
                         className={`max-w-[75%] px-3 py-2 rounded-2xl text-sm shadow-sm cursor-pointer select-none transition-all ${
                           isMe ? 'bg-indigo-600 text-white' : 'bg-white text-gray-800'
@@ -251,7 +292,7 @@ const Messages = () => {
                         onMouseLeave={handleMsgHoldEnd}
                         onTouchStart={() => handleMsgHoldStart(m, i, isMe)}
                         onTouchEnd={handleMsgHoldEnd}
-                        onContextMenu={(e) => { e.preventDefault(); if (isMe) setSelectedMsg({ id: m._id, idx: i }); }}
+                        onContextMenu={(e) => { e.preventDefault(); if (isMe && m._id) setSelectedMsg({ id: m._id, idx: i }); }}
                       >
                         <p>{m.text}</p>
                         <p className={`text-xs mt-1 ${isMe ? 'text-indigo-200' : 'text-gray-400'}`}>
