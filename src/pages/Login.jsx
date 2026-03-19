@@ -1,14 +1,23 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import api from '../utils/api';
 import toast from 'react-hot-toast';
+import { FaEye, FaEyeSlash } from 'react-icons/fa';
 
 const Login = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [showPass, setShowPass] = useState(false);
+  const hideTimer = useRef(null);
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  const handleShowPass = () => {
+    setShowPass(true);
+    clearTimeout(hideTimer.current);
+    hideTimer.current = setTimeout(() => setShowPass(false), 2000);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -33,8 +42,21 @@ const Login = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <input className="input" type="email" placeholder="Email" value={form.email}
             onChange={e => setForm({ ...form, email: e.target.value })} required />
-          <input className="input" type="password" placeholder="Password" value={form.password}
-            onChange={e => setForm({ ...form, password: e.target.value })} required />
+
+          {/* Password with eye */}
+          <div className="relative">
+            <input className="input pr-10 w-full"
+              type={showPass ? 'text' : 'password'}
+              placeholder="Password"
+              value={form.password}
+              onChange={e => setForm({ ...form, password: e.target.value })}
+              required />
+            <button type="button" onClick={handleShowPass}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-indigo-600 transition">
+              {showPass ? <FaEyeSlash size={16} /> : <FaEye size={16} />}
+            </button>
+          </div>
+
           <button className="btn-primary w-full text-center py-2" disabled={loading}>
             {loading ? 'Logging in...' : 'Login'}
           </button>
