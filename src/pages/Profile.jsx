@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FaLinkedin, FaGithub, FaEnvelope, FaEdit } from 'react-icons/fa';
+import { FaLinkedin, FaGithub, FaEnvelope, FaEdit, FaTrash } from 'react-icons/fa';
 
 const Profile = () => {
   const { id } = useParams();
@@ -52,6 +52,17 @@ const Profile = () => {
     } catch { toast.error('Error sending request'); }
   };
 
+  const deleteItem = async (type, itemId) => {
+    if (!window.confirm('Are you sure you want to delete this?')) return;
+    try {
+      await api.delete(`/${type}/${itemId}`);
+      if (type === 'notes') setUploadedNotes(prev => prev.filter(n => n._id !== itemId));
+      if (type === 'syllabus') setUploadedSyllabus(prev => prev.filter(s => s._id !== itemId));
+      if (type === 'questionpapers') setUploadedQPapers(prev => prev.filter(q => q._id !== itemId));
+      toast.success('Deleted successfully!');
+    } catch { toast.error('Could not delete'); }
+  };
+
   if (!profile) return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
@@ -71,10 +82,7 @@ const Profile = () => {
 
         {/* Profile Card */}
         <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-6">
-
-          {/* Cover */}
           <div style={{ background: 'linear-gradient(135deg, #4f46e5, #7c3aed)' }} className="h-24" />
-
           <div className="px-6 pb-6">
             <div className="flex items-end justify-between -mt-12 mb-4 flex-wrap gap-3">
               <img
@@ -103,7 +111,6 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Name & Info */}
             <div className="mb-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <h2 className="text-2xl font-black text-gray-800">{profile.fullName}</h2>
@@ -121,7 +128,6 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Stats */}
             <div className="flex gap-6 py-4 border-t border-b border-gray-100 mb-4">
               <div className="text-center">
                 <p className="text-xl font-black text-indigo-700">{totalUploads}</p>
@@ -141,7 +147,6 @@ const Profile = () => {
               </div>
             </div>
 
-            {/* Skills */}
             {profile.skills?.length > 0 && (
               <div className="flex flex-wrap gap-2 mb-4">
                 {profile.skills.map(s => (
@@ -150,7 +155,6 @@ const Profile = () => {
               </div>
             )}
 
-            {/* Social Links */}
             <div className="flex gap-4">
               {profile.linkedin && (
                 <a href={profile.linkedin} target="_blank" rel="noreferrer"
@@ -188,6 +192,7 @@ const Profile = () => {
           </div>
 
           <div className="p-4 space-y-3">
+            {/* Notes */}
             {activeTab === 'notes' && (
               uploadedNotes.length === 0 ? (
                 <p className="text-center text-gray-400 py-8">No notes uploaded yet.</p>
@@ -197,14 +202,23 @@ const Profile = () => {
                     <p className="font-semibold text-gray-800 text-sm">{n.subject} — {n.year} Year</p>
                     {n.topic && <p className="text-xs text-indigo-500">Topic: {n.topic}</p>}
                   </div>
-                  <a href={n.fileUrl} target="_blank" rel="noreferrer"
-                    className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
-                    View
-                  </a>
+                  <div className="flex gap-2">
+                    <a href={n.fileUrl} target="_blank" rel="noreferrer"
+                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
+                      View
+                    </a>
+                    {isOwn && (
+                      <button onClick={() => deleteItem('notes', n._id)}
+                        className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-600 flex items-center gap-1">
+                        <FaTrash size={10} /> Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             )}
 
+            {/* Syllabus */}
             {activeTab === 'syllabus' && (
               uploadedSyllabus.length === 0 ? (
                 <p className="text-center text-gray-400 py-8">No syllabus uploaded yet.</p>
@@ -214,14 +228,23 @@ const Profile = () => {
                     <p className="font-semibold text-gray-800 text-sm">{s.college} — {s.year} Year</p>
                     {s.description && <p className="text-xs text-gray-500">{s.description}</p>}
                   </div>
-                  <a href={s.fileUrl} target="_blank" rel="noreferrer"
-                    className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
-                    View
-                  </a>
+                  <div className="flex gap-2">
+                    <a href={s.fileUrl} target="_blank" rel="noreferrer"
+                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
+                      View
+                    </a>
+                    {isOwn && (
+                      <button onClick={() => deleteItem('syllabus', s._id)}
+                        className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-600 flex items-center gap-1">
+                        <FaTrash size={10} /> Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             )}
 
+            {/* Q Papers */}
             {activeTab === 'qpapers' && (
               uploadedQPapers.length === 0 ? (
                 <p className="text-center text-gray-400 py-8">No question papers uploaded yet.</p>
@@ -231,10 +254,18 @@ const Profile = () => {
                     <p className="font-semibold text-gray-800 text-sm">{q.subject} — {q.year} Year ({q.examYear})</p>
                     {q.description && <p className="text-xs text-gray-500">{q.description}</p>}
                   </div>
-                  <a href={q.fileUrl} target="_blank" rel="noreferrer"
-                    className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
-                    View
-                  </a>
+                  <div className="flex gap-2">
+                    <a href={q.fileUrl} target="_blank" rel="noreferrer"
+                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
+                      View
+                    </a>
+                    {isOwn && (
+                      <button onClick={() => deleteItem('questionpapers', q._id)}
+                        className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-600 flex items-center gap-1">
+                        <FaTrash size={10} /> Delete
+                      </button>
+                    )}
+                  </div>
                 </div>
               ))
             )}
