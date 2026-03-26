@@ -4,7 +4,7 @@ import Navbar from '../components/Navbar';
 import api from '../utils/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
-import { FaLinkedin, FaGithub, FaEnvelope, FaEdit, FaTrash } from 'react-icons/fa';
+import { FaLinkedin, FaGithub, FaEnvelope, FaEdit, FaTrash, FaEye } from 'react-icons/fa';
 
 const Profile = () => {
   const { id } = useParams();
@@ -16,6 +16,7 @@ const Profile = () => {
   const [uploadedQPapers, setUploadedQPapers] = useState([]);
   const [reqStatus, setReqStatus] = useState(null);
   const [activeTab, setActiveTab] = useState('notes');
+  const [viewFile, setViewFile] = useState(null);
 
   useEffect(() => {
     fetchProfile();
@@ -78,6 +79,27 @@ const Profile = () => {
   return (
     <div className="min-h-screen bg-gray-100">
       <Navbar />
+
+      {/* File Viewer Modal — platform ke andar */}
+      {viewFile && (
+        <div className="fixed inset-0 bg-black bg-opacity-80 z-50 flex flex-col">
+          <div className="flex items-center justify-between px-4 py-3 bg-white shadow">
+            <p className="font-semibold text-gray-800 text-sm truncate max-w-xs">{viewFile.name}</p>
+            <button onClick={() => setViewFile(null)}
+              className="px-4 py-2 bg-red-500 text-white rounded-xl text-sm font-semibold hover:bg-red-600 transition">
+              ✕ Close
+            </button>
+          </div>
+          <div className="flex-1 overflow-hidden">
+            <iframe
+              src={viewFile.url}
+              title={viewFile.name}
+              className="w-full h-full border-0"
+            />
+          </div>
+        </div>
+      )}
+
       <div className="max-w-3xl mx-auto py-8 px-4">
 
         {/* Profile Card */}
@@ -129,22 +151,17 @@ const Profile = () => {
             </div>
 
             <div className="flex gap-6 py-4 border-t border-b border-gray-100 mb-4">
-              <div className="text-center">
-                <p className="text-xl font-black text-indigo-700">{totalUploads}</p>
-                <p className="text-xs text-gray-500">Total Uploads</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xl font-black text-indigo-700">{uploadedNotes.length}</p>
-                <p className="text-xs text-gray-500">Notes</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xl font-black text-indigo-700">{uploadedSyllabus.length}</p>
-                <p className="text-xs text-gray-500">Syllabus</p>
-              </div>
-              <div className="text-center">
-                <p className="text-xl font-black text-indigo-700">{uploadedQPapers.length}</p>
-                <p className="text-xs text-gray-500">Q Papers</p>
-              </div>
+              {[
+                { val: totalUploads, label: 'Total Uploads' },
+                { val: uploadedNotes.length, label: 'Notes' },
+                { val: uploadedSyllabus.length, label: 'Syllabus' },
+                { val: uploadedQPapers.length, label: 'Q Papers' },
+              ].map(s => (
+                <div key={s.label} className="text-center">
+                  <p className="text-xl font-black text-indigo-700">{s.val}</p>
+                  <p className="text-xs text-gray-500">{s.label}</p>
+                </div>
+              ))}
             </div>
 
             {profile.skills?.length > 0 && (
@@ -182,9 +199,7 @@ const Profile = () => {
             ].map(tab => (
               <button key={tab.key} onClick={() => setActiveTab(tab.key)}
                 className={`flex-1 py-3 text-sm font-semibold transition-all ${
-                  activeTab === tab.key
-                    ? 'text-indigo-600 border-b-2 border-indigo-600'
-                    : 'text-gray-500 hover:text-indigo-500'
+                  activeTab === tab.key ? 'text-indigo-600 border-b-2 border-indigo-600' : 'text-gray-500 hover:text-indigo-500'
                 }`}>
                 {tab.label}
               </button>
@@ -197,16 +212,17 @@ const Profile = () => {
               uploadedNotes.length === 0 ? (
                 <p className="text-center text-gray-400 py-8">No notes uploaded yet.</p>
               ) : uploadedNotes.map(n => (
-                <div key={n._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition">
-                  <div>
+                <div key={n._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition flex-wrap gap-2">
+                  <div className="min-w-0">
                     <p className="font-semibold text-gray-800 text-sm">{n.subject} — {n.year} Year</p>
                     {n.topic && <p className="text-xs text-indigo-500">Topic: {n.topic}</p>}
                   </div>
-                  <div className="flex gap-2">
-                    <a href={n.fileUrl} target="_blank" rel="noreferrer"
-                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
-                      View
-                    </a>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => setViewFile({ url: n.fileUrl, name: `${n.subject} - ${n.year} Year` })}
+                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 flex items-center gap-1">
+                      <FaEye size={10} /> View
+                    </button>
                     {isOwn && (
                       <button onClick={() => deleteItem('notes', n._id)}
                         className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-600 flex items-center gap-1">
@@ -223,16 +239,17 @@ const Profile = () => {
               uploadedSyllabus.length === 0 ? (
                 <p className="text-center text-gray-400 py-8">No syllabus uploaded yet.</p>
               ) : uploadedSyllabus.map(s => (
-                <div key={s._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition">
-                  <div>
+                <div key={s._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition flex-wrap gap-2">
+                  <div className="min-w-0">
                     <p className="font-semibold text-gray-800 text-sm">{s.college} — {s.year} Year</p>
                     {s.description && <p className="text-xs text-gray-500">{s.description}</p>}
                   </div>
-                  <div className="flex gap-2">
-                    <a href={s.fileUrl} target="_blank" rel="noreferrer"
-                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
-                      View
-                    </a>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => setViewFile({ url: s.fileUrl, name: `${s.college} - ${s.year} Year Syllabus` })}
+                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 flex items-center gap-1">
+                      <FaEye size={10} /> View
+                    </button>
                     {isOwn && (
                       <button onClick={() => deleteItem('syllabus', s._id)}
                         className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-600 flex items-center gap-1">
@@ -249,16 +266,17 @@ const Profile = () => {
               uploadedQPapers.length === 0 ? (
                 <p className="text-center text-gray-400 py-8">No question papers uploaded yet.</p>
               ) : uploadedQPapers.map(q => (
-                <div key={q._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition">
-                  <div>
+                <div key={q._id} className="flex justify-between items-center p-3 bg-gray-50 rounded-xl hover:bg-indigo-50 transition flex-wrap gap-2">
+                  <div className="min-w-0">
                     <p className="font-semibold text-gray-800 text-sm">{q.subject} — {q.year} Year ({q.examYear})</p>
                     {q.description && <p className="text-xs text-gray-500">{q.description}</p>}
                   </div>
-                  <div className="flex gap-2">
-                    <a href={q.fileUrl} target="_blank" rel="noreferrer"
-                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700">
-                      View
-                    </a>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button
+                      onClick={() => setViewFile({ url: q.fileUrl, name: `${q.subject} - ${q.examYear}` })}
+                      className="text-xs bg-indigo-600 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-indigo-700 flex items-center gap-1">
+                      <FaEye size={10} /> View
+                    </button>
                     {isOwn && (
                       <button onClick={() => deleteItem('questionpapers', q._id)}
                         className="text-xs bg-red-500 text-white px-3 py-1.5 rounded-lg font-semibold hover:bg-red-600 flex items-center gap-1">
@@ -277,4 +295,3 @@ const Profile = () => {
 };
 
 export default Profile;
-
